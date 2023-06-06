@@ -54,6 +54,9 @@ Assets.load(["myAmongUs","eggHat"]).then(
 		characterWithHat.addChild(character);
 		characterWithHat.addChild(hat);
 
+		characterWithHat.x = 500;
+		characterWithHat.y = 500;
+
 		app.stage.addChild(characterWithHat);
 		
 });
