@@ -1,13 +1,17 @@
 
-import { Application, Sprite, Assets, Container} from 'pixi.js'
+import { Application, Assets } from 'pixi.js'
+import { Scene } from './Scene';
+import { CharacterAssets, UIAssets } from './assets';
+
+
 
 const app = new Application({
 	view: document.getElementById("pixi-canvas") as HTMLCanvasElement,
 	resolution: window.devicePixelRatio || 1,
 	autoDensity: true,
 	backgroundColor: 0x6495ed,
-	width: 1280,
-	height: 720,
+	width: 800,
+	height: 600,
 });
 
 window.addEventListener("resize",
@@ -31,32 +35,12 @@ window.addEventListener("resize",
 });
 window.dispatchEvent(new Event("resize"));
 
-Assets.add("eggHat", "./egghat.webp");
-Assets.add("myAmongUs", "./amongus.png");
+Assets.addBundle("characterWithHat",CharacterAssets);
+Assets.addBundle("UI",UIAssets);
 
-Assets.load(["myAmongUs","eggHat"]).then(
+Assets.load(["myAmongUs","eggHat","bluePanel","greyPanel","cancelIcon","blueButton"]).then(
 	() => {
-		const character: Sprite = Sprite.from("myAmongUs");
-		const hat : Sprite = Sprite.from("eggHat");
-
-		character.height = 200;
-		character.width = 200;
-		character.anchor.set(0);
-		character.x = 0;
-		character.y = 0;
-
-		hat.anchor.set(0);
-		hat.angle=-20
-		hat.x = 30;
-		hat.y = 10;
-		
-		const characterWithHat : Container = new Container();
-		characterWithHat.addChild(character);
-		characterWithHat.addChild(hat);
-
-		characterWithHat.x = 500;
-		characterWithHat.y = 500;
-
-		app.stage.addChild(characterWithHat);
+		const myScene:Scene = new Scene(app);
+		app.stage.addChild(myScene);
 		
 });
