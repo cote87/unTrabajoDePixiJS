@@ -29,8 +29,4 @@ export class MenuScene extends Scene{
         });
     }
 
-    override setVisible(bool: boolean): void {
-        this.visible=bool;
-    }
-
 }

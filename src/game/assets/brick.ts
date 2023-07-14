@@ -1,8 +1,6 @@
-import { Container, Graphics } from "pixi.js";
+import {Graphics } from "pixi.js";
 
-export class brick extends Container{
-    img: Graphics = new Graphics();
-    deleted:boolean;
+export class brick extends Graphics{
 
     constructor(x:number,y:number){
         super();
@@ -15,12 +13,10 @@ export class brick extends Container{
         const color = (red << 16) | (green << 8) | blue;
 
 
-        this.img.lineStyle(1,"black");
-        this.img.beginFill(color);
-        this.img.drawRect(0,0,x,y);
-        this.img.endFill();
-        this.img.visible=false;
-        this.deleted=false;
+        this.lineStyle(1,"black");
+        this.beginFill(color);
+        this.drawRect(0,0,x,y);
+        this.endFill();
 
     }
 }

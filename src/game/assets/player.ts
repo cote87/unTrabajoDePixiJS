@@ -1,16 +1,13 @@
-import { Container, Graphics } from "pixi.js";
+import { Graphics } from "pixi.js";
 
-export class player extends Container{
-    img: Graphics = new Graphics();
+export class player extends Graphics{
 
     constructor(x:number,y:number){
         super();
-        this.img.lineStyle(1,"#579");
-        this.img.beginFill("#919");
-        this.img.drawRect(0,0,x,y);
-        this.img.endFill();
-        this.img.visible = false;
-        this.addChild(this.img);
+        this.lineStyle(1,"#579");
+        this.beginFill("#919");
+        this.drawRect(0,0,x,y);
+        this.endFill();
 
     }
 }

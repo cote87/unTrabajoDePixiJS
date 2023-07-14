@@ -1,15 +1,13 @@
-import { Container, Graphics } from "pixi.js";
+import { Graphics } from "pixi.js";
 
-export class ball extends Container{
-    img: Graphics = new Graphics();
+export class ball extends Graphics{
 
     constructor(r:number){
         super();
-        this.img.lineStyle(1,"black");
-        this.img.beginFill("white");
-        this.img.drawCircle(0,0,r);
-        this.img.endFill();
-        this.img.visible=false;
+        this.lineStyle(1,"black");
+        this.beginFill("white");
+        this.drawCircle(0,0,r);
+        this.endFill();
 
     }
 }
