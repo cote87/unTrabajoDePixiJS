@@ -10,5 +10,7 @@ export class Scene extends Container implements IUpdateable{
     update(_deltaFrame: number, _deltaTime: number): void {
         
     }
-    
+    removeListeners(){
+        
+    }
 }

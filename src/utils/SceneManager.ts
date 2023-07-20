@@ -36,6 +36,7 @@ export class SceneManager{
     }
 
     changeScene(newScene:string):void{
+        this.scene.removeListeners();
         this.scene.removeFromParent();
         switch(newScene){
             case SceneManager.LV01:
@@ -45,6 +46,7 @@ export class SceneManager{
                 this.scene=new MenuScene(this);
                 break;
         }
+        
         this.app.stage.addChild(this.scene);
     }
 

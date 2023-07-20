@@ -16,15 +16,15 @@ export class Level01Scene extends Scene{
     manager;
 
     player:player;
-    playerWhidth = 200;
-    playerHeight = 30;
+    playerWhidth = 170;
+    playerHeight = 20;
 
     ball:ball;
-    ballRadio = 15;
+    ballRadio = 10;
 
     bricks:DataMatrix<brick>;
-    brickWhidth = 100;
-    brickHeight = 30;
+    brickWhidth = 80;
+    brickHeight = 20;
     brickColCount: number =6;
     brickRowCount: number =5;
 
@@ -39,6 +39,12 @@ export class Level01Scene extends Scene{
     scoreText;
     gameOver = false;
     pause = true;
+
+    setPause;
+    pressLeft;
+    leaveLeft;
+    pressRight;
+    leaveRight;
 
     constructor(manager:SceneManager){
         super();
@@ -57,7 +63,7 @@ export class Level01Scene extends Scene{
         let score = "Score:"+this.score;
         this.scoreText = new Text(score,{
             fill:"green",
-            fontSize:10,
+            fontSize:30,
             align:"left"
         });
         this.scoreText.position.x=10;
@@ -84,34 +90,40 @@ export class Level01Scene extends Scene{
         this.setGame();
 
         //Listeners
-        document.addEventListener('keypress', (event)=>{
+
+        this.setPause =  (event:KeyboardEvent)=>{
             if (event.key === '' || event.key === ' '){
                 this.pause=false;
+                console.log("Espacio");
             }
-        });
-        document.addEventListener('keypress', (event)=>{
+        };
+    
+        this.pressLeft = (event:KeyboardEvent)=>{
             if (event.key === 'a' || event.key === 'A'){
                 this.leftPressed = true;
             }
-        });
-       
-        document.addEventListener('keypress', (event)=>{
-            if (event.key === 'd' || event.key === 'D'){
-                this.rightPressed = true;
-            }
-        });
-
-        document.addEventListener('keyup', (event)=>{
+        };
+        this.leaveLeft = (event:KeyboardEvent)=>{
             if (event.key === 'a' || event.key === 'A'){
                 this.leftPressed = false;
             }
-        });
-
-        document.addEventListener('keyup', (event)=>{
+        };
+        this.pressRight = (event:KeyboardEvent)=>{
+            if (event.key === 'd' || event.key === 'D'){
+                this.rightPressed = true;
+            }
+        };
+        this.leaveRight = (event:KeyboardEvent)=>{
             if (event.key === 'd' || event.key === 'D'){
                 this.rightPressed = false;
             }
-        });
+        };
+
+        document.addEventListener('keypress',this.setPause);
+        document.addEventListener('keypress', this.pressLeft);
+        document.addEventListener('keyup', this.leaveLeft);
+        document.addEventListener('keypress', this.pressRight);
+        document.addEventListener('keyup', this.leaveRight);
         
     }
 
@@ -126,11 +138,14 @@ export class Level01Scene extends Scene{
         this.ball.position.y = this.app.screen.height - (this.playerHeight+this.ballRadio+20);
         this.ballDirection.x=1;
         this.ballDirection.y=-1;
+        let innerSpace = 15;
+        let finalSize = (this.brickColCount*this.brickWhidth)+(innerSpace*(this.brickColCount-1));
+        let borderSizeX = (this.app.screen.width - finalSize)/2;
         for(let i=0;i<this.bricks.rows;i++){
             for(let j=0;j<this.bricks.cols;j++){
                 let aBrick:brick = this.bricks.getValue(i,j);
-                aBrick.position.x = 94 + (aBrick.width+4) * i;
-                aBrick.position.y = 40 + (aBrick.height+4) * j;
+                aBrick.position.x = borderSizeX + (aBrick.width+innerSpace) * i;
+                aBrick.position.y = 50 + (aBrick.height+innerSpace) * j;
                 if(!aBrick.visible){
                     aBrick.visible=true;
                     this.app.stage.addChild(aBrick);
@@ -334,5 +349,12 @@ export class Level01Scene extends Scene{
            
         }
         
+    }
+    override removeListeners(): void {
+        document.removeEventListener('keypress',this.setPause);
+        document.removeEventListener('keypress', this.pressLeft);
+        document.removeEventListener('keyup', this.leaveLeft);
+        document.removeEventListener('keypress', this.pressRight);
+        document.removeEventListener('keyup', this.leaveRight);
     }
 }
