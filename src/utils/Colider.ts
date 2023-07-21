@@ -12,9 +12,9 @@ export class Colider {
         if(circle.y < rectangle.y+tolerancy) nearPoint.y=rectangle.y;
         if(circle.y > (rectangle.y+rectangle.height-tolerancy)) nearPoint.y=rectangle.y+rectangle.height;
 
-        let distance = Math.sqrt(Math.pow(circle.x-nearPoint.x,2)+Math.pow(circle.y-nearPoint.y,2));
+        let distancePow2 = Math.pow(circle.x-nearPoint.x,2)+Math.pow(circle.y-nearPoint.y,2);
 
-        if(distance < circle.radius) collision =true;
+        if(distancePow2 < Math.pow(circle.radius,2)) collision =true;
 
         return collision;
     };

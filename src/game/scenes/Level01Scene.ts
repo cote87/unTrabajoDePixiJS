@@ -7,6 +7,7 @@ import { WindowBox } from "../../ui/WindowBox";
 import { Colider } from "../../utils/Colider";
 import { brick } from "../assets/brick";
 import { DataMatrix } from "../../utils/DataMatrix";
+import { MathFunctions } from "../../utils/MathFunctions";
 
 
 export class Level01Scene extends Scene{
@@ -20,19 +21,21 @@ export class Level01Scene extends Scene{
     playerHeight = 20;
 
     ball:ball;
-    ballRadio = 10;
+    ballRadio = 6;
 
     bricks:DataMatrix<brick>;
-    brickWhidth = 80;
-    brickHeight = 20;
+    brickWhidth = 60;
+    brickHeight = 30;
     brickColCount: number =6;
     brickRowCount: number =5;
+    brickInnerSpace: number = 5;
 
     leftPressed;
     rightPressed;
     
-    ballDirection;
-    velocity = 8;
+    ballDirection:Point;
+    ballLastPosition:Point;
+    velocity = 6;
 
     winCounter:number;
     score;
@@ -68,6 +71,7 @@ export class Level01Scene extends Scene{
         });
         this.scoreText.position.x=10;
         this.scoreText.position.y=10;
+        this.ballLastPosition=new Point();
 
         //Elementos del juego
         this.player = new player(this.playerWhidth,this.playerHeight);
@@ -94,7 +98,6 @@ export class Level01Scene extends Scene{
         this.setPause =  (event:KeyboardEvent)=>{
             if (event.key === '' || event.key === ' '){
                 this.pause=false;
-                console.log("Espacio");
             }
         };
     
@@ -136,16 +139,17 @@ export class Level01Scene extends Scene{
         this.player.position.y = this.app.screen.height - (this.playerHeight+20);
         this.ball.position.x = (this.app.screen.width/2) ;
         this.ball.position.y = this.app.screen.height - (this.playerHeight+this.ballRadio+20);
+        this.ballLastPosition.x = this.ball.position.x;
+        this.ballLastPosition.y = this.ball.position.y;
         this.ballDirection.x=1;
         this.ballDirection.y=-1;
-        let innerSpace = 15;
-        let finalSize = (this.brickColCount*this.brickWhidth)+(innerSpace*(this.brickColCount-1));
+        let finalSize = (this.brickColCount*this.brickWhidth)+(this.brickInnerSpace*(this.brickColCount-1));
         let borderSizeX = (this.app.screen.width - finalSize)/2;
         for(let i=0;i<this.bricks.rows;i++){
             for(let j=0;j<this.bricks.cols;j++){
                 let aBrick:brick = this.bricks.getValue(i,j);
-                aBrick.position.x = borderSizeX + (aBrick.width+innerSpace) * i;
-                aBrick.position.y = 50 + (aBrick.height+innerSpace) * j;
+                aBrick.position.x = borderSizeX + (aBrick.width+this.brickInnerSpace) * i;
+                aBrick.position.y = 50 + (aBrick.height+this.brickInnerSpace) * j;
                 if(!aBrick.visible){
                     aBrick.visible=true;
                     this.app.stage.addChild(aBrick);
@@ -158,11 +162,8 @@ export class Level01Scene extends Scene{
 
     public override update(_deltaFrame: number, _deltaTime: number): void {
 
-        console.log(this.ballDirection.x+","+this.ballDirection.y);
-
         //Win Condition
         if(this.winCounter==0 && !this.gameOver){
-            console.log("You Win!");
             this.windows(Level01Scene.WIN);
             this.pause=true;
             this.gameOver=true;
@@ -210,7 +211,7 @@ export class Level01Scene extends Scene{
                 let aBrick = this.bricks.getValue(i,j);
                 if(aBrick.visible){
                     let brickHitbox = new Rectangle(aBrick.x,aBrick.y,aBrick.width,aBrick.height);
-                    if(Colider.circleVsRectangleCollision(ballHitBox,brickHitbox,this.velocity*2)){
+                    if(Colider.circleVsRectangleCollision(ballHitBox,brickHitbox,0)){
                         lastHitbox=brickHitbox;
                         aBrick.visible=false;
                         changeDirection=true;
@@ -221,7 +222,8 @@ export class Level01Scene extends Scene{
             }
         }
         if(changeDirection) this.bounceBricks(ballHitBox,lastHitbox,this.ballDirection);
-
+        this.ballLastPosition.x=this.ball.x;
+        this.ballLastPosition.y=this.ball.y;
         //Movimiento de Ball y comportamiento cuando colisiona con la Screen
             
         if(!this.pause && !this.gameOver){
@@ -250,7 +252,6 @@ export class Level01Scene extends Scene{
                 if((this.ball.position.y + this.ballRadio) < this.app.screen.height+(this.ballRadio*3)){
                     if((this.ball.position.y + this.ballRadio) > this.app.screen.height+(this.ballRadio*2)){
                             if(this.gameOver == false){
-                                console.log("game over");
                                 this.windows(Level01Scene.GAMEOVER);
                                 this.gameOver = true;
                             }              
@@ -269,23 +270,63 @@ export class Level01Scene extends Scene{
             }  
 
         }
-            
-        
     }
 
     // Función que se encarga del rebote de la pelota con los Bricks
 
     bounceBricks(ball:Circle,brick:Rectangle,direction:Point):void{
-        let margin = ball.radius/2;
-        if(ball.x >= (brick.x-margin) && ball.x <= (brick.x+brick.width+margin)){
-            direction.y=-direction.y;
+        let tempDirection :Point = new Point(direction.x,direction.y);        
+        let ballActualPoint = new Point(ball.x,ball.y);
+        let m =MathFunctions.linealM(this.ballLastPosition,ballActualPoint);
+
+        let b =MathFunctions.linealB(m,ballActualPoint);
+        let cornerX = 0;
+        let y = 0;
+       
+        //Separar caso segun origen de la pelota
+        //Si viene desde arriba a la izquierda
+        if(tempDirection.x>0 && tempDirection.y>0){
+            cornerX = brick.x;
+            y = MathFunctions.linealY(m,b,cornerX);
+            if(y>=brick.y){
+                direction.x = -direction.x;
+            }
+            if(y<=brick.y){
+                direction.y = -direction.y;
+            }
         }
-        if(ball.y >= (brick.y-margin) && ball.y <= (brick.y+brick.height+margin)){
-            console.log("margin="+margin);
-            console.log("radio="+ball.radius);
-            console.log("rango s/m = "+brick.y+" a "+ (brick.y+brick.height));
-            console.log("entro, ball="+ball.y+" rango="+(brick.y-margin)+" a "+(brick.y+brick.height+margin));
-            direction.x=-direction.x;
+        //Si viene desde arriba a la derecha
+        if(tempDirection.x<0 && tempDirection.y>0){
+            cornerX = brick.x+brick.width;
+            y = MathFunctions.linealY(m,b,cornerX);
+            if(y>=brick.y){
+                direction.x = -direction.x;
+            }
+            if(y<=brick.y){
+                direction.y = -direction.y;
+            }
+        }
+        //Si viene desde abajo a la izquierda
+        if(tempDirection.x>0 && tempDirection.y<0){
+            cornerX = brick.x;
+            y = MathFunctions.linealY(m,b,cornerX);
+            if(y<=(brick.y+brick.height)){
+                direction.x = -direction.x;
+            }
+            if(y>=(brick.y+brick.height)){
+                direction.y = -direction.y;
+            }
+        }
+        //Si viene desde abajo a la derecha
+        if(tempDirection.x<0 && tempDirection.y<0){
+            cornerX = brick.x+brick.width;
+            y = MathFunctions.linealY(m,b,cornerX);
+            if(y<=brick.y){
+                direction.x = -direction.x;
+            }
+            if(y>=brick.y){
+                direction.y = -direction.y;
+            }
         }
     }
 
