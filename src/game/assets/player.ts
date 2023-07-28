@@ -1,13 +1,14 @@
-import { Graphics } from "pixi.js";
+import { Assets, Container, Sprite } from "pixi.js";
 
-export class player extends Graphics{
-
-    constructor(x:number,y:number){
+export class player extends Container{
+    constructor(){
         super();
-        this.lineStyle(1,"#579");
-        this.beginFill("#919");
-        this.drawRect(0,0,x,y);
-        this.endFill();
+        Assets.load("player").then(
+            () => {
+                let playerSprite:Sprite = Sprite.from("player");
+                this.addChild(playerSprite);
+            }
+        );
 
     }
 }

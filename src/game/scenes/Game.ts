@@ -1,16 +1,120 @@
-import { Circle, Point, Rectangle, Text} from "pixi.js";
-import { player } from "../assets/player";
-import { ball } from "../assets/ball";
 import { SceneManager } from "../../utils/SceneManager";
 import { Scene } from "./Scene";
-import { WindowBox } from "../../ui/WindowBox";
-import { Colider } from "../../utils/Colider";
 import { brick } from "../assets/brick";
-import { DataMatrix } from "../../utils/DataMatrix";
-import { MathFunctions } from "../../utils/MathFunctions";
+import { Level01Area } from "./Level01Area";
+import { Application } from "pixi.js";
+import { WindowBox } from "../../ui/WindowBox";
+import { InfoBox } from "../../ui/InfoBox";
 
 
-export class Level01Scene extends Scene{
+export class Game extends Scene{
+    static LOSS = "loss";
+    static WIN = "win";
+    private statusGame:number;
+    private manager: SceneManager;
+    private app: Application;
+    private currentLevel;
+    private infoBox:InfoBox;
+
+    constructor(sceneManager:SceneManager,level:number){
+        super();
+        this.manager = sceneManager;
+        this.app = this.manager.app;
+        let border = (this.app.screen.height*0.1)/2;
+        switch(level){
+            case 1:
+                this.currentLevel = new Level01Area(this.app.screen.width*0.6,this.app.screen.height*0.9);
+                this.currentLevel.position.y = border;
+                this.currentLevel.position.x = border;
+                this.addChild(this.currentLevel);
+                brick;
+        }
+        this.statusGame = this.currentLevel?.winCounter as number;
+        let infoBoxWidth = this.app.screen.width - (this.currentLevel?.width as number) - (border*2);
+        this.infoBox = new InfoBox(infoBoxWidth,this.app.screen.height*0.9);
+        this.infoBox.position.y = border;
+        this.infoBox.position.x = border+(this.currentLevel?.width as number);
+        this.addChild(this.infoBox);
+
+
+    }
+
+    windows(condition:string){
+  
+        switch(condition){
+
+            case Game.LOSS : 
+                let w01 : WindowBox = new WindowBox("Game Over","Final Score:\n"+this.currentLevel?.getScore(),"Red","Retry",300,450);
+
+                w01=this.app.stage.addChild(w01);
+                let buttonW = w01.button;
+                let cancelIcon = w01.cancelIcon;
+
+                w01.x = (this.app.screen.width - w01.width)/2;
+                w01.y = (this.app.screen.height - w01.height)/2;
+
+                //'none'/'passive'/'auto'/'static'/'dynamic'
+                buttonW.eventMode='dynamic';
+                buttonW.on('mousedown', () =>{ 
+                    w01.removeFromParent();
+                    this.currentLevel?.resetGame();
+                    this.statusGame = this.currentLevel?.winCounter as number;
+                });
+
+                //'none'/'passive'/'auto'/'static'/'dynamic'
+                cancelIcon.eventMode='dynamic';
+                cancelIcon.on('mousedown', () =>{ 
+                    w01.removeFromParent();
+                    this.manager.changeScene(SceneManager.MENU);     
+                });
+                
+                break;
+
+            case Game.WIN :
+                let w : WindowBox = new WindowBox("You Win!","Final Score:\n"+this.currentLevel?.getScore(),"Green","Retry",300,450);
+
+                w=this.app.stage.addChild(w);
+                let wbutton = w.button;
+                let wCancelIcon = w.cancelIcon;
+
+                w.x = (this.app.screen.width - w.width)/2;
+                w.y = (this.app.screen.height - w.height)/2;
+
+                //'none'/'passive'/'auto'/'static'/'dynamic'
+                wbutton.eventMode='dynamic';
+                wbutton.on('mousedown', () =>{ 
+                    w.removeFromParent();
+                    this.currentLevel?.resetGame();
+                    this.statusGame = this.currentLevel?.winCounter as number;
+                });
+
+                //'none'/'passive'/'auto'/'static'/'dynamic'
+                wCancelIcon.eventMode='dynamic';
+                wCancelIcon.on('mousedown', () =>{ 
+                    w.removeFromParent();
+                    this.manager.changeScene(SceneManager.MENU);     
+                });
+                
+                break;
+           
+        }
+        
+    }
+    override update(deltaMS: number, deltaTime: number): void {
+        this.infoBox.update(this.currentLevel?.getScore() as number , this.currentLevel?.getLives() as number);
+        if(this.statusGame > 0){
+            
+            this.statusGame = this.currentLevel?.update(deltaMS,deltaTime) as number;
+            if(this.statusGame == 0){
+                this.windows(Game.WIN);  
+              }
+            if(this.statusGame < 0){
+                this.windows(Game.LOSS);
+            }        
+        }
+            
+    }
+    /* OLD/////////////////
     static GAMEOVER = "gameover";
     static WIN = "win";
     app;
@@ -29,6 +133,8 @@ export class Level01Scene extends Scene{
     brickColCount: number =6;
     brickRowCount: number =5;
     brickInnerSpace: number = 5;
+
+    gameAreaContainer:Container;
 
     leftPressed;
     rightPressed;
@@ -49,17 +155,21 @@ export class Level01Scene extends Scene{
     pressRight;
     leaveRight;
 
-    constructor(manager:SceneManager){
+    constructor(manager:SceneManager,gameAreaContainer:Container){
         super();
+        //Container del levelXX
+        this.gameAreaContainer = gameAreaContainer;
         // Objetos utiles
         this.manager= manager;
         const app = manager.getApp();
         this.app = app;
 
-        //Seteo de variables
+        //Controles
         this.leftPressed = false;
         this.rightPressed = false;
-        let mod = Math.sqrt(2);
+
+        //Seteo de variables
+        let mod = 1.41;
         this.ballDirection = new Point(1/mod,1/mod);
         this.winCounter=this.brickColCount*this.brickRowCount;
         this.score = 0;
@@ -152,7 +262,7 @@ export class Level01Scene extends Scene{
                 aBrick.position.y = 50 + (aBrick.height+this.brickInnerSpace) * j;
                 if(!aBrick.visible){
                     aBrick.visible=true;
-                    this.app.stage.addChild(aBrick);
+                    this.addChild(aBrick);
                 }
             }
         }
@@ -164,7 +274,7 @@ export class Level01Scene extends Scene{
 
         //Win Condition
         if(this.winCounter==0 && !this.gameOver){
-            this.windows(Level01Scene.WIN);
+            this.windows(Game.WIN);
             this.pause=true;
             this.gameOver=true;
         }
@@ -224,8 +334,8 @@ export class Level01Scene extends Scene{
         if(changeDirection) this.bounceBricks(ballHitBox,lastHitbox,this.ballDirection);
         this.ballLastPosition.x=this.ball.x;
         this.ballLastPosition.y=this.ball.y;
-        //Movimiento de Ball y comportamiento cuando colisiona con la Screen
-            
+        
+        //Movimiento de Ball y comportamiento cuando colisiona con la Screen           
         if(!this.pause && !this.gameOver){
 
             if(this.ballDirection.x < 0){
@@ -252,7 +362,7 @@ export class Level01Scene extends Scene{
                 if((this.ball.position.y + this.ballRadio) < this.app.screen.height+(this.ballRadio*3)){
                     if((this.ball.position.y + this.ballRadio) > this.app.screen.height+(this.ballRadio*2)){
                             if(this.gameOver == false){
-                                this.windows(Level01Scene.GAMEOVER);
+                                this.windows(Game.GAMEOVER);
                                 this.gameOver = true;
                             }              
                         } 
@@ -336,7 +446,7 @@ export class Level01Scene extends Scene{
   
         switch(condition){
 
-            case Level01Scene.GAMEOVER : 
+            case Game.GAMEOVER : 
                 let w01 : WindowBox = new WindowBox("Game Over","Final Score:\n"+this.score,"Red","Retry",300,450);
 
                 w01=this.app.stage.addChild(w01);
@@ -362,7 +472,7 @@ export class Level01Scene extends Scene{
                 
                 break;
 
-            case Level01Scene.WIN :
+            case Game.WIN :
                 let w : WindowBox = new WindowBox("You Win!","Final Score:\n"+this.score,"Green","Retry",300,450);
 
                 w=this.app.stage.addChild(w);
@@ -398,4 +508,7 @@ export class Level01Scene extends Scene{
         document.removeEventListener('keypress', this.pressRight);
         document.removeEventListener('keyup', this.leaveRight);
     }
+*/
+
+
 }

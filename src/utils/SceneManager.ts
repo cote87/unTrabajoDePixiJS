@@ -1,9 +1,9 @@
-import { Application, Ticker } from "pixi.js";
+import { Application, Assets, Ticker } from "pixi.js";
 import { Scene } from "../game/scenes/Scene";
 import { MenuScene } from "../game/scenes/MenuScene";
-import { Level01Scene } from "../game/scenes/Level01Scene";
+import { Game } from "../game/scenes/Game";
 import { AdaptableScreen } from "./AdaptableScreen";
-
+import { GameAssets, UIAssets } from "../game/assets/assets";
 
 export class SceneManager{
     
@@ -13,14 +13,15 @@ export class SceneManager{
     public static LV01 = "01";
     
     constructor(){
-
+        Assets.addBundle("ui",UIAssets);
+        Assets.addBundle("game",GameAssets);
         this.app = new Application({
             view: document.getElementById("pixi-canvas") as HTMLCanvasElement,
             resolution: window.devicePixelRatio || 1,
             autoDensity: true,
             backgroundColor: 0x34495e,
-            width: 800,
-            height: 600,
+            width: 1280,
+            height: 720,
         });
         const screen:AdaptableScreen = new AdaptableScreen();
         screen.adaptableScreen(this.app);
@@ -40,7 +41,7 @@ export class SceneManager{
         this.scene.removeFromParent();
         switch(newScene){
             case SceneManager.LV01:
-                this.scene=new Level01Scene(this);
+                this.scene=new Game(this,1);
                 break;
             case SceneManager.MENU:
                 this.scene=new MenuScene(this);
