@@ -12,7 +12,7 @@ export class MenuScene extends Scene{
         const app = manager.getApp();
         Assets.load(["bluePanel","greyPanel","cancelIcon","blueButton"]).then(
             () => {
-                let window : WindowBox = new WindowBox("","Pobrenoid","Purple","Play",250,450);
+                let window : WindowBox = new WindowBox("","Arcanoid","Purple","Play",250,450);
                 window.scale=new Point(1.2,1.2);
                 window.x = (app.screen.width - window.width)/2;
                 window.y = (app.screen.height - window.height)/2;
